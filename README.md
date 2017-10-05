@@ -24,7 +24,7 @@ coefficients for linear regression. There are a few options to set, such as
 learning rate, number of iterations, etc. There's also an option for setting
 the learning rate to be dynamic. 
 
-#### stats_regress.py
+#### stats\_regress.py
 
 This is a suite of statistics calculation functions for regressions. Examples:
 mean_squared_error, r2, adjusted r2, etc.
