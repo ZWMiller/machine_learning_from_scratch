@@ -35,3 +35,10 @@ This module uses information gain to build decisions trees for
 classification. It will be the basis for our bagging classifier and random
 forest classifier. It has a few setting like max-depth to control how our
 trees are built.
+
+#### k_nearest_neighbors.ipynb
+
+This module is based on the wisdom of "points that are close together should
+be of the same class." It measures the distances to all points and then finds
+the k (user specifies 'k' by setting 'n_neighbors') closest points. Those points all get to vote on
+what class the new point likely is. 
