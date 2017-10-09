@@ -29,8 +29,9 @@ the learning rate to be dynamic.
 This is a suite of statistics calculation functions for regressions. Examples:
 mean_squared_error, r2, adjusted r2, etc.
 
-#### decision_tree_scratch.ipynb
+#### decision_tree_classifier.ipynb
 
-This module uses information gain to build decisions trees for classification. It also has the
-capability of act as Random Forest Classifier as well as a bagging classifier
-if the user sets the appropriate flags.
+This module uses information gain to build decisions trees for
+classification. It will be the basis for our bagging classifier and random
+forest classifier. It has a few setting like max-depth to control how our
+trees are built.
