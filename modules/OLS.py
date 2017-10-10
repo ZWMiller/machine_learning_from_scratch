@@ -56,11 +56,12 @@ class OLS:
     
     def score(self, X, true):
         """
-        Takes in X, y pairs and measures the performance of the model.
+        Takes in X, y pairs and measures the performance of the model. 
+        Returns negative mean squared error score.
         ---
         Inputs: X, y (features, labels; np.arrays)
-        Outputs: Mean Squared Error (float)
+        Outputs: negative Mean Squared Error (float)
         """
         pred = self.predict(X)
-        mse = np.mean(np.square(true-pred))
+        mse = -1.*np.mean(np.square(true-pred))
         return mse

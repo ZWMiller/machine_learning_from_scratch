@@ -12,6 +12,18 @@ the code is. These modules will be much simpler in design, such that a student
 can read through and understand how the algorithm works. As such, they will
 not be as optimized as SkLearn, etc.
 
+**__Organization__**
+
+Notebooks: Each notebook will have the class fully written out, with a test case shown.
+All version information for the used python and modules (numpy, pandas, etc)
+are shown as well for later comparison. 
+
+Modules: These files will simply contain the class/functions as an importable
+module for use with outside data.
+
+## Notebooks/modules
+
+
 #### linear_regression_closed_form.ipynb
 
 This modules uses the Linear Algebra, closed-form solution for solving for
@@ -42,3 +54,10 @@ This module is based on the wisdom of "points that are close together should
 be of the same class." It measures the distances to all points and then finds
 the k (user specifies 'k' by setting 'n_neighbors') closest points. Those points all get to vote on
 what class the new point likely is. 
+
+#### train_test_and_cross_validation.ipynb (data_splitting.py)
+
+We use different methods of splitting the data to measure the model
+performance on "unseen" or "out-of-sample" data. The cross-validation method
+will report the model behavior several different folds. Both cross validation
+and train-test split are built from scratch in this notebook. 
