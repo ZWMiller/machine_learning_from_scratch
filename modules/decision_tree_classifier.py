@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import pandas as pd
 
 class decision_tree_classifier:
     
@@ -222,7 +223,6 @@ class decision_tree_classifier:
                 return self._predict(newdata, tree.fb) 
 
     def score(self, X, y):
-        def score(self, X, y):
         """
         Uses the predict method to measure the accuracy of the model.
         ---
