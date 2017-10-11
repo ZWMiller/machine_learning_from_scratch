@@ -24,31 +24,31 @@ module for use with outside data.
 ## Notebooks/modules
 
 
-#### linear_regression_closed_form.ipynb
+#### linear_regression_closed_form.ipynb (OLS.py)
 
 This modules uses the Linear Algebra, closed-form solution for solving for
 coefficients of linear regression. 
 
-#### stochastic_gradient_descent_regressions.ipynb
+#### stochastic_gradient_descent_regressions.ipynb (sgd_regressor.py)
 
 This module performs stochastic gradient descent to find the regression
 coefficients for linear regression. There are a few options to set, such as
 learning rate, number of iterations, etc. There's also an option for setting
 the learning rate to be dynamic. 
 
-#### stats\_regress.py
+#### stats\_regress.py (no notebook, just used for quick calculations)
 
 This is a suite of statistics calculation functions for regressions. Examples:
 mean_squared_error, r2, adjusted r2, etc.
 
-#### decision_tree_classifier.ipynb
+#### decision_tree_classifier.ipynb (decision_tree_classifier.py)
 
 This module uses information gain to build decisions trees for
 classification. It will be the basis for our bagging classifier and random
 forest classifier. It has a few setting like max-depth to control how our
 trees are built.
 
-#### k_nearest_neighbors.ipynb
+#### k_nearest_neighbors.ipynb (knn_classifier.py)
 
 This module is based on the wisdom of "points that are close together should
 be of the same class." It measures the distances to all points and then finds
