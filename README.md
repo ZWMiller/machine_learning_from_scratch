@@ -62,6 +62,23 @@ performance on "unseen" or "out-of-sample" data. The cross-validation method
 will report the model behavior several different folds. Both cross validation
 and train-test split are built from scratch in this notebook. 
 
+#### bagging_classifier.ipynb (bagging_classifier.py)
+
+This ensemble method is an extension on the decision tree that uses
+bootstrapping. Bootstrapping where we sample the dataset (with replacement)
+over and over to build out new datasets that "built from" our true data. If we
+do this many times, we'll build many slightly different trees on the bootstrapped data
+since no two trees will see the exact same data. Then we let all the trees
+predict on any new data, and allow the wisdom of the masses to determine our
+final outcome.
+
+#### random_forest_classifier.ipynb (random_forest_classifier.py)
+
+This is another ensemble method. It's just like the bagging_classifier, except
+we also randomize what features go to each tree in our data. Instead of just
+randomizing our datapoints, we also say, "this tree only gets features 1, 3,
+and 5." This further randomizes out input to each tree, helping to fight
+over-fitting; which puts us in a better spot for the bias-variance trade off.
 
 ## _Methodology note:_
 
