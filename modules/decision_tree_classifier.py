@@ -66,11 +66,14 @@ class decision_tree_classifier:
         entropy will be high. 
         """
         results = self.count_target_values(y)
-        log2=lambda x:math.log(x)/math.log(2)
+        log_base = len(results.keys())
+        if log_base < 2:
+            log_base = 2
+        log_b=lambda x:math.log(x)/math.log(log_base)
         ent=0.
         for r in results.keys():
             p=float(results[r])/len(y) 
-            ent-=p*log2(p)
+            ent-=p*log_b(p)
         return ent  
     
     def pandas_to_numpy(self, x):
@@ -168,6 +171,7 @@ class decision_tree_classifier:
         ---
         In: indent (how to show splits between nodes)
         """
+        self.__original_indent = indent
         self._print_tree_(self.tree, indent)
     
     def _print_tree_(self, tree, indent):
@@ -181,7 +185,7 @@ class decision_tree_classifier:
             print('Column ' + str(tree.col)+' : '+str(tree.value)+'? ')
             # Print the branches
             print(indent+' True: ', end=' ')
-            next_indent = indent+indent
+            next_indent = indent+self.__original_indent
             self._print_tree_(tree.tb,indent=next_indent)
             print(indent+' False: ', end=' ')
             self._print_tree_(tree.fb,indent=next_indent)

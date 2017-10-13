@@ -113,6 +113,7 @@ class SGD_Regressor:
         """
         X = self.pandas_to_numpy(X)
         y = self.pandas_to_numpy(y)
+        
         self._stdy = np.std(y)
         self.coef_ = self.init_coef(X)
         if self._return_steps:
@@ -140,9 +141,14 @@ class SGD_Regressor:
         ---
         Input: X, Feature matrix. Needed to decide how many coefficients to generate.
         """
-        if self._fit_intercept:
-            return np.random.rand(X.shape[1]+1)
-        return np.random.rand(X.shape[1])
+        try:
+            if self._fit_intercept:
+                return np.random.rand(X.shape[1]+1)
+            return np.random.rand(X.shape[1])
+        except:
+            if self._fit_intercept:
+                return np.random.rand(2)
+            return np.random.rand(1)
 
     def predict(self, X):  
         """
