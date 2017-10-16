@@ -24,7 +24,7 @@ module for use with outside data.
 ## Notebooks/modules
 
 
-#### linear_regression_closed_form.ipynb (OLS.py)
+#### linear_regression_closed_form.ipynb (linear_regression.py)
 
 This modules uses the Linear Algebra, closed-form solution for solving for
 coefficients of linear regression. 
@@ -47,6 +47,13 @@ This module uses information gain to build decisions trees for
 classification. It will be the basis for our bagging classifier and random
 forest classifier. It has a few setting like max-depth to control how our
 trees are built.
+
+#### decision_tree_regreeor.ipynb (decision_tree_regressor.py)
+
+This module uses optimization of standard deviation or absolute errors to build decisions trees for
+regression. It will be the basis for our random
+forest regressor. It has a few setting like max-depth to control how our
+trees are built and a few options for optimization method.
 
 #### k_nearest_neighbors.ipynb (knn_classifier.py)
 
@@ -79,6 +86,10 @@ we also randomize what features go to each tree in our data. Instead of just
 randomizing our datapoints, we also say, "this tree only gets features 1, 3,
 and 5." This further randomizes out input to each tree, helping to fight
 over-fitting; which puts us in a better spot for the bias-variance trade off.
+
+#### random_forest_regressor.ipynb (random_forest_regressor.py)
+
+This is similar to the random_forest_classifier, but we instead focus on getting a continuous output.
 
 ## _Methodology note:_
 
