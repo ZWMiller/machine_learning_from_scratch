@@ -4,11 +4,33 @@ import pandas as pd
 
 class decision_tree_classifier:
     
-    def __init__(self, max_depth = None):
+    def __init__(self, max_depth = None, mode=None, n_features=None, seed=None):
+        """
+        Decision Trees classifier builds a tree of decisions using a greedy approach
+        of always making the best split available at that time. The best split is 
+        decided by entropy (information gain). This class is recursive, training node
+        by node to build a full set of decisions.
+        Params:
+        max_depth (int): maximum number of splits to make in the tree
+        mode: If mode='rfnode' the column randomization happens at each node. Otherwise
+              the tree will assume all input columns are valid choices
+        n_features: The number of columns to include in the models. Only applies if
+                    mode='rfnode.' Otherwise n_features = number of columns in data.
+                    Options: numeric value (e.g. 4 => 4 columns used)
+                             "sqrt" (square root of the number of cols in input data)
+                             "div3" (number of input cols divided by 3)
+        
+        seed: Random seed to allow for reproducibility.
+        """
         self.tree = self.tree_split()
         self.data_cols = None
         self.max_depth = max_depth
         self.current_depth = 0
+        self.mode = mode
+        self.n_features = n_features
+        if seed:
+            self._seed = seed
+            np.random.seed = seed
     
     # Sub class for handling recursive nodes (only makes sense in the scope of a tree)
     class tree_split:
@@ -17,12 +39,13 @@ class decision_tree_classifier:
         for the current split, as well as links to the resulting nodes from the split. The 
         results attribute remains empty unless the current node is a leaf. 
         """
-        def __init__(self,col=-1,value=None,results=None,label=None,tb=None,fb=None):
+        def __init__(self,col=-1,value=None,results=None,label=None,tb=None,fb=None,filt=None):
             self.col=col # column index of criteria being tested
             self.value=value # vlaue necessary to get a true result
             self.results=results # dict of results for a branch, None for everything except endpoints
             self.tb=tb # true decision nodes 
             self.fb=fb # false decision nodes
+            self.filt=filt # column filter to see which columns were available
     
     def split_data(self, X, y, colnum, value):
         """
@@ -55,6 +78,49 @@ class decision_tree_classifier:
             results[row] += 1
         return results
 
+    def find_number_of_columns(self, X):
+        """
+        Uses the user input for n_features to decide how many columns should
+        be included in each model. Uses the shape of X to decide the final number
+        if 'sqrt' is called. 
+        ---
+        Input: X (array, dataframe, or series)
+        """
+        if isinstance(self.n_features, int):
+            return self.n_features
+        if self.n_features == 'sqrt':
+            return int(np.sqrt(X.shape[1])+0.5)
+        if self.n_features == 'div3':
+            return int(X.shape[1]/3+0.5)
+        else:
+            raise ValueError("Invalid n_features selection")
+    
+    def randomize_columns(self,X):
+        """
+        Chooses a set of columns to keep from the input data. These are
+        randomly drawn, according the number requested by the user. The data
+        is filtered and only the allowed columns are returned, along with the
+        filter. 
+        ---
+        Input: X (array)
+        Output: filtered_X (array), filter (array)
+        """
+        num_col = self.find_number_of_columns(X)
+        filt = np.random.choice(np.arange(0,X.shape[1]),num_col,replace=False)
+        filtered_X = self.apply_filter(X, filt)
+        return filtered_X, filt
+    
+    def apply_filter(self, X, filt):
+        """
+        Given X and a filter, only the columns matching the index values
+        in filter are returned.
+        ---
+        Input: X (array), filter (array of column IDs)
+        Output: filtered_X (array)
+        """
+        filtered_X = X.T[filt]
+        return filtered_X.T
+    
     def entropy(self, y):
         """
         Returns: Entropy of the data set, based on target values. 
@@ -128,14 +194,17 @@ class decision_tree_classifier:
         best_criteria = None
         best_sets = None
         
-        cols = X.shape[1]
+        if self.mode=='rfnode':
+            _, cols = self.randomize_columns(X)
+        else: 
+            cols = [x for x in range(X.shape[1])]
         
         
         # Here we go through column by column and try every possible split, measuring the
         # information gain. We keep track of the best split then use that to send the split
         # data sets into the next phase of splitting.
         
-        for col in range(cols):
+        for col in cols:
             
             # find different values in this column
             column_values = set(X.T[col])
@@ -159,7 +228,7 @@ class decision_tree_classifier:
                 true_branch = self._fit(best_sets[0], best_sets[1])
                 false_branch = self._fit(best_sets[2], best_sets[3])
                 return self.tree_split(col=best_criteria[0], value=best_criteria[1],
-                        tb=true_branch, fb=false_branch)
+                        tb=true_branch, fb=false_branch, filt=cols)
             else:
                 return self.tree_split(results=self.count_target_values(y))
         else:

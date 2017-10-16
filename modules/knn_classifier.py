@@ -13,7 +13,11 @@ class KNearestNeighbors:
         ---
         In: n_neighbors (int) - how many closest neighbors do we consider
         """
-        self.k = int(n_neighbors)
+        if n_neighbors > 0:
+            self.k = int(n_neighbors)
+        else:
+            print("n_neighbors must be >0. Set to 5!")
+            self.k = 5
         self.X = None
         self.y = None
         
