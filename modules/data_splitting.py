@@ -24,10 +24,10 @@ def train_test_split(X, y, test_size=0.3):
             y_test.append(y)
     return X_train, X_test, y_train, y_test
 
+
 from stats_regress import *
 
 class cross_val:
-    
     def __init__(self, show_plot=False, feat_num=0):
         """
         The Cross-Val object contains several objects that the user may want to 

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-class SGD_Regressor:
+class sgd_regressor:
     
     def __init__(self, n_iter=100, alpha=0.01, verbose=False, return_steps=False, fit_intercept=True, 
                  dynamic=False, loss='ols', epsilon=0.1):

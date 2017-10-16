@@ -1,27 +1,31 @@
 import sys 
 sys.path.append('../modules')
-from decision_tree_classifier import decision_tree_classifier
+from decision_tree_regressor import decision_tree_regressor
 import collections
 import pandas as pd
 import numpy as np
 
-class random_forest_classifier:
+class random_forest_regressor:
     
-    def __init__(self, n_trees = 10, max_depth=None, n_features='sqrt', mode='rfnode', seed=None):
+    def __init__(self, n_trees = 10, max_depth=None, n_features='sqrt', mode='rfnode', seed=None, criteria='std'):
         """
-        Random Forest Classifier uses bootstrapping and column randomization
+        Random Forest Regressor uses bootstrapping and column randomization
         to generate n_trees different datasets and then applies a decision 
         tree to each dataset. The final prediction is an ensemble of all created trees.
         ---
         Params:
         n_trees (int): number of bootstrapped trees to grow for ensembling
-        max_depth (int): maximum number of splits to make in each tree)
-        n_features: The number of columns to include in the models. 
+        max_depth (int): maximum number of splits to make in the tree
+        mode: If mode='rfnode' the column randomization happens at each node. Otherwise
+              the tree will assume all input columns are valid choices and randomize at
+              a "per tree" level.
+        n_features: The number of columns to include in the models. Only applies if
+                    mode='rfnode.' Otherwise n_features = number of columns in data.
                     Options: numeric value (e.g. 4 => 4 columns used)
                              "sqrt" (square root of the number of cols in input data)
                              "div3" (number of input cols divided by 3)
-        mode: If mode='rfnode' the column randomization happens at each node. Otherwise
-              Each tree gets one randomized set of columns for all nodes in that tree.
+        criteria: Options are "std" (standard deviation) and "mae" (absolute error from mean). 
+                  This choice decides how the tree will be optimized. Default: "std"
         seed: Random seed to allow for reproducibility.
         """
         self.n_trees = n_trees
@@ -29,6 +33,7 @@ class random_forest_classifier:
         self.n_features = n_features
         self.tree_filter_pairs = []
         self.mode = mode
+        self.criteria = criteria
         if seed:
             self._seed = seed
             np.random.seed(seed)
@@ -122,7 +127,8 @@ class random_forest_classifier:
             bagX, bagy = self.get_bagged_data(X,y)
             if self.mode == 'rftree':
                 bagX, filt = self.randomize_columns(bagX)
-            new_tree = decision_tree_classifier(self.max_depth, mode=self.mode, n_features=self.n_features)
+            new_tree = decision_tree_regressor(self.max_depth, mode=self.mode, 
+                                               n_features=self.n_features, criteria=self.criteria)
             new_tree.fit(bagX, bagy)
             self.tree_filter_pairs.append((new_tree, filt))
     
@@ -145,19 +151,16 @@ class random_forest_classifier:
         
         ensemble_predict = []
         for row in self.pred_by_row:
-            ensemble_predict.append(collections.Counter(row).most_common(1)[0][0])
+            ensemble_predict.append(np.mean(row))
         return ensemble_predict
     
     def score(self, X, y):
         """
-        Uses the predict method to measure the accuracy of the model.
+        Uses the predict method to measure the (negative)
+        mean squared error of the model.
         ---
         In: X (list or array), feature matrix; y (list or array) labels
-        Out: accuracy (float)
+        Out: negative mean squared error (float)
         """
         pred = self.predict(X)
-        correct = 0
-        for i,j in zip(y,pred):
-            if i == j:
-                correct+=1
-        return float(correct)/float(len(y))
+        return -1.* np.mean((np.array(pred)-np.array(y))**2)

@@ -2,13 +2,13 @@ import math
 import numpy as np
 import pandas as pd
 
-class decision_tree_classifier:
+class decision_tree_regressor:
     
-    def __init__(self, max_depth = None, mode=None, n_features=None, seed=None):
+    def __init__(self, max_depth = None, mode=None, n_features=None, criteria='std', seed=None):
         """
-        Decision Trees classifier builds a tree of decisions using a greedy approach
+        Decision Tree Regressor builds a tree of decisions using a greedy approach
         of always making the best split available at that time. The best split is 
-        decided by entropy (information gain). This class is recursive, training node
+        decided by minimizing varuous criteria. This class is recursive, training node
         by node to build a full set of decisions.
         Params:
         max_depth (int): maximum number of splits to make in the tree
@@ -19,12 +19,15 @@ class decision_tree_classifier:
                     Options: numeric value (e.g. 4 => 4 columns used)
                              "sqrt" (square root of the number of cols in input data)
                              "div3" (number of input cols divided by 3)
-        
+        criteria: Options are "std" (standard deviation) and "mae" (absolute error from mean). 
+                  This choice decides how the tree will be optimized. Default: "std"
         seed: Random seed to allow for reproducibility.
         """
         self.tree = self.tree_split()
         self.data_cols = None
         self.max_depth = max_depth
+        self.current_depth = 0
+        self.criteria = criteria
         self.mode = mode
         self.n_features = n_features
         if seed:
@@ -38,7 +41,7 @@ class decision_tree_classifier:
         for the current split, as well as links to the resulting nodes from the split. The 
         results attribute remains empty unless the current node is a leaf. 
         """
-        def __init__(self,col=-1,value=None,results=None,label=None,tb=None,fb=None,filt=None):
+        def __init__(self,col=-1,value=None,results=None,label=None,tb=None,fb=None, filt=None):
             self.col=col # column index of criteria being tested
             self.value=value # vlaue necessary to get a true result
             self.results=results # dict of results for a branch, None for everything except endpoints
@@ -66,17 +69,21 @@ class decision_tree_classifier:
         set2Y = y[split2]
         return set1X, set1Y, set2X, set2Y
 
-    def count_target_values(self, data):
+    def split_criteria(self, y):
         """
-        Returns: A dictionary of target variable counts in the data
+        Returns the criteria we're trying to minimize by splitting.
+        Current options are target Mean Absolute Error (from the target 
+        mean) or Standard deviation of the target.
+        ---
+        Input: targets in the split
+        Output: Criteria
         """
-        results = {}
-        for row in data:
-            if row not in results:
-                results[row] = 0
-            results[row] += 1
-        return results
-
+        if self.criteria == 'mae':
+            mu = np.mean(y)
+            return np.mean(np.abs(y-mu))
+        else:
+            return np.std(y) 
+        
     def find_number_of_columns(self, X):
         """
         Uses the user input for n_features to decide how many columns should
@@ -120,27 +127,6 @@ class decision_tree_classifier:
         filtered_X = X.T[filt]
         return filtered_X.T
     
-    def entropy(self, y):
-        """
-        Returns: Entropy of the data set, based on target values. 
-        ent = Sum(-p_i Log(p_i), i in unique targets) where p is the percentage of the
-        data with the ith label.
-        Sidenote: We're using entropy as our measure of good splits. It corresponds to 
-        information gained by making this split. If the split results in only one target type
-        then the entropy new sets entropy is 0. If it results in a ton of different targets, the
-        entropy will be high. 
-        """
-        results = self.count_target_values(y)
-        log_base = len(results.keys())
-        if log_base < 2:
-            log_base = 2
-        log_b=lambda x:math.log(x)/math.log(log_base)
-        ent=0.
-        for r in results.keys():
-            p=float(results[r])/len(y) 
-            ent-=p*log_b(p)
-        return ent  
-    
     def pandas_to_numpy(self, x):
         """
         Checks if the input is a Dataframe or series, converts to numpy matrix for
@@ -166,7 +152,7 @@ class decision_tree_classifier:
     
     def fit(self, X, y):
         """
-        Helper function to wrap the fit method. This makes sure the full nested 
+        Helper function to wrap the fit method. This makes sure the full nested, 
         recursively built tree gets assigned to the correct variable name and 
         persists after training.
         """
@@ -176,8 +162,9 @@ class decision_tree_classifier:
         """
         Builds the decision tree via a greedy approach, checking every possible
         branch for the best current decision. Decision strength is measured by
-        information gain/entropy reduction. If no information gain is possible,
-        sets a leaf node. Recursive calls to this method allow the nesting.
+        reduction in chosen criteria. If no information gain is possible,
+        sets a leaf node. Recursive calls to this method allow the nesting. If
+        max_depth is met, all further nodes become leaves as well.
         ---
         Input: X (feature matrix), y (labels)
         Output: A nested tree built upon the node class."""
@@ -190,7 +177,7 @@ class decision_tree_classifier:
                 self.data_cols = 1
         X = self.check_feature_shape(X)
         if len(X) == 0: return tree_split()
-        current_score = self.entropy(y)
+        current_score = self.split_criteria(y)
 
         best_gain = 0.0
         best_criteria = None
@@ -199,40 +186,35 @@ class decision_tree_classifier:
         if self.mode=='rfnode':
             _, cols = self.randomize_columns(X)
         else: 
-            cols = [x for x in range(self.data_cols)]
-        
+            cols = [x for x in range(self.data_cols)]        
         
         # Here we go through column by column and try every possible split, measuring the
         # information gain. We keep track of the best split then use that to send the split
         # data sets into the next phase of splitting.
+        
         for col in cols:
-       
-            # find different values in this column
             column_values = set(X.T[col])
-            # for each possible value, try to divide on that value
             for value in column_values:
                 set1, set1_y, set2, set2_y = self.split_data(X, y, col, value)
-
-                # Information gain
                 p = float(len(set1)) / len(y)
-                gain = current_score - p*self.entropy(set1_y) - (1-p)*self.entropy(set2_y)
+                gain = current_score - p*self.split_criteria(set1_y) - (1-p)*self.split_criteria(set2_y)
                 if gain > best_gain and len(set1_y) and len(set2_y):
                     best_gain = gain
                     best_criteria = (col, value)
                     best_sets = (np.array(set1), np.array(set1_y), np.array(set2), np.array(set2_y))
         
-        
         # Now decide whether it's an endpoint or we need to split again.
         if (self.max_depth and depth < self.max_depth) or not self.max_depth:
             if best_gain > 0:
+                self.current_depth += 1
                 true_branch = self._fit(best_sets[0], best_sets[1], depth=depth+1)
                 false_branch = self._fit(best_sets[2], best_sets[3], depth=depth+1)
                 return self.tree_split(col=best_criteria[0], value=best_criteria[1],
                         tb=true_branch, fb=false_branch, filt=cols)
             else:
-                return self.tree_split(results=self.count_target_values(y))
+                return self.tree_split(results=self.get_mean_target_value(y))
         else:
-            return self.tree_split(results=self.count_target_values(y))
+            return self.tree_split(results=self.get_mean_target_value(y))
 
     def print_tree(self, indent="---"):
         """
@@ -269,6 +251,8 @@ class decision_tree_classifier:
         Out: numpy array of the resulting predictions
         """
         results = []
+        newdata = self.pandas_to_numpy(newdata)
+        newdata = self.check_feature_shape(newdata)
         for x in newdata:
             results.append(self._predict(x,self.tree))
         return np.array(results)
@@ -276,12 +260,11 @@ class decision_tree_classifier:
     def _predict(self, newdata, tree):
         """
         Uses the reusive structure of the tree to follow each split for
-        a new data point. If the node is an endpoint, the available classes
-        are sorted by "most common" and then the top choice is returned.
+        a new data point. If the node is an endpoint, the mean value of
+        all training points at that end is returned.
         """
-        newdata = self.pandas_to_numpy(newdata)
-        if tree.results: # if this is a end node
-            return sorted(list(tree.results.items()), key=lambda x: x[1],reverse=True)[0][0]
+        if tree.results is not None: # if this is a end node
+            return tree.results
 
         if isinstance(newdata[tree.col], int) or isinstance(newdata[tree.col],float):
             if newdata[tree.col] >= tree.value:
@@ -297,14 +280,11 @@ class decision_tree_classifier:
 
     def score(self, X, y):
         """
-        Uses the predict method to measure the accuracy of the model.
+        Uses the predict method to measure the (negative)
+        mean squared error of the model.
         ---
         In: X (list or array), feature matrix; y (list or array) labels
-        Out: accuracy (float)
+        Out: negative mean squared error (float)
         """
         pred = self.predict(X)
-        correct = 0
-        for i,j in zip(y,pred):
-            if i == j:
-                correct+=1
-        return float(correct)/float(len(y))
+        return -1.*np.mean((pred-y)**2)

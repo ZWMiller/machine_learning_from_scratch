@@ -1,6 +1,6 @@
 import numpy as np
 
-class OLS:
+class linear_regression:
     
     def __init__(self, w_intercept=True):
         self.coef_ = None

@@ -4,7 +4,7 @@ import pandas as pd
 import copy
 import collections
 
-class KNearestNeighbors:
+class knn_classifier:
     
     def __init__(self, n_neighbors=5):
         """
