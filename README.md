@@ -21,9 +21,9 @@ are shown as well for later comparison.
 Modules: These files will simply contain the class/functions as an importable
 module for use with outside data.
 
-## Notebooks/modules
+# Notebooks/modules
 
-### Regression: 
+## Regression: 
 
 #### linear_regression_closed_form.ipynb (linear_regression.py)
 
@@ -48,7 +48,7 @@ trees are built and a few options for optimization method.
 
 This is similar to the random_forest_classifier, but we instead focus on getting a continuous output.
 
-### Classification
+## Classification:
 
 #### decision_tree_classifier.ipynb (decision_tree_classifier.py)
 
@@ -83,19 +83,26 @@ randomizing our datapoints, we also say, "this tree only gets features 1, 3,
 and 5." This further randomizes out input to each tree, helping to fight
 over-fitting; which puts us in a better spot for the bias-variance trade off.
 
-#### Bernoulli Naive Bayes
+#### bernoulli_naive_bayes.ipynb (bernoulli_naive_bayes.py)
 
 Uses Bayes rule to calculate the probability that a given observation will belong in each class, 
 based on what it's learned about probability distributions in the training data. In the Bernoulli 
 flavor, only "on" or "off" is counted for each feature when determining probability
 
-### Clustering
+#### gaussian_naive_bayes.ipynb (gaussian_naive_bayes.py)
+
+Uses Bayes rule to calculate the probability that a given observation will belong in each class, 
+based on what it's learned about probability distributions in the training data. In the Gaussian 
+flavor, each feature is assumed to have a normal distribution, so the sample mean and standard deviation are used
+to approximate the Probability Distribution; which is sampled to determine probability.
+
+## Clustering:
 
 #### KMeans
 
 Description still to come. 
 
-### Non-Algorithm - but useful
+## Non-Algorithm - but useful
 
 #### train_test_and_cross_validation.ipynb (data_splitting.py)
 
