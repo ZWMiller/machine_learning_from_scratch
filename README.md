@@ -1,12 +1,12 @@
 TO DO:
 
-[ ] Docstring and markdown both Naive Bayes notebooks. 
+  [ ] Docstring and markdown both Naive Bayes notebooks. 
 
-[ ] Update Naive Bayes Modules
+  [ ] Update Naive Bayes Modules
 
-[ ] Markdown KMeans Notebook
+  [ ] Markdown KMeans Notebook
 
-[ ] Add KMeans README
+  [ ] Add KMeans README
 
 ---
 # Machine Learning from Scratch in Python
