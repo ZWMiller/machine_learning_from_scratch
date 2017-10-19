@@ -23,6 +23,7 @@ module for use with outside data.
 
 ## Notebooks/modules
 
+### Regression: 
 
 #### linear_regression_closed_form.ipynb (linear_regression.py)
 
@@ -36,10 +37,18 @@ coefficients for linear regression. There are a few options to set, such as
 learning rate, number of iterations, etc. There's also an option for setting
 the learning rate to be dynamic. 
 
-#### stats\_regress.py (no notebook, just used for quick calculations)
+#### decision_tree_regreeor.ipynb (decision_tree_regressor.py)
 
-This is a suite of statistics calculation functions for regressions. Examples:
-mean_squared_error, r2, adjusted r2, etc.
+This module uses optimization of standard deviation or absolute errors to build decisions trees for
+regression. It will be the basis for our random
+forest regressor. It has a few setting like max-depth to control how our
+trees are built and a few options for optimization method.
+
+#### random_forest_regressor.ipynb (random_forest_regressor.py)
+
+This is similar to the random_forest_classifier, but we instead focus on getting a continuous output.
+
+### Classification
 
 #### decision_tree_classifier.ipynb (decision_tree_classifier.py)
 
@@ -48,12 +57,6 @@ classification. It will be the basis for our bagging classifier and random
 forest classifier. It has a few setting like max-depth to control how our
 trees are built.
 
-#### decision_tree_regreeor.ipynb (decision_tree_regressor.py)
-
-This module uses optimization of standard deviation or absolute errors to build decisions trees for
-regression. It will be the basis for our random
-forest regressor. It has a few setting like max-depth to control how our
-trees are built and a few options for optimization method.
 
 #### k_nearest_neighbors.ipynb (knn_classifier.py)
 
@@ -61,13 +64,6 @@ This module is based on the wisdom of "points that are close together should
 be of the same class." It measures the distances to all points and then finds
 the k (user specifies 'k' by setting 'n_neighbors') closest points. Those points all get to vote on
 what class the new point likely is. 
-
-#### train_test_and_cross_validation.ipynb (data_splitting.py)
-
-We use different methods of splitting the data to measure the model
-performance on "unseen" or "out-of-sample" data. The cross-validation method
-will report the model behavior several different folds. Both cross validation
-and train-test split are built from scratch in this notebook. 
 
 #### bagging_classifier.ipynb (bagging_classifier.py)
 
@@ -87,9 +83,32 @@ randomizing our datapoints, we also say, "this tree only gets features 1, 3,
 and 5." This further randomizes out input to each tree, helping to fight
 over-fitting; which puts us in a better spot for the bias-variance trade off.
 
-#### random_forest_regressor.ipynb (random_forest_regressor.py)
+#### Bernoulli Naive Bayes
 
-This is similar to the random_forest_classifier, but we instead focus on getting a continuous output.
+Uses Bayes rule to calculate the probability that a given observation will belong in each class, 
+based on what it's learned about probability distributions in the training data. In the Bernoulli 
+flavor, only "on" or "off" is counted for each feature when determining probability
+
+### Clustering
+
+#### KMeans
+
+Description still to come. 
+
+### Non-Algorithm - but useful
+
+#### train_test_and_cross_validation.ipynb (data_splitting.py)
+
+We use different methods of splitting the data to measure the model
+performance on "unseen" or "out-of-sample" data. The cross-validation method
+will report the model behavior several different folds. Both cross validation
+and train-test split are built from scratch in this notebook. 
+
+#### stats\_regress.py (no notebook, just used for quick calculations)
+
+This is a suite of statistics calculation functions for regressions. Examples:
+mean_squared_error, r2, adjusted r2, etc.
+
 
 ## _Methodology note:_
 
