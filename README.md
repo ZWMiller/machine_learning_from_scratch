@@ -1,7 +1,5 @@
 TO DO:
 
-  [ ] Docstring and markdown both Naive Bayes notebooks. 
-
   [ ] Update Naive Bayes Modules
 
   [ ] Markdown KMeans Notebook
