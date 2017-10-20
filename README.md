@@ -1,7 +1,5 @@
 TO DO:
 
-  [ ] Update Naive Bayes Modules
-
   [ ] Markdown KMeans Notebook
 
   [ ] Add KMeans README
