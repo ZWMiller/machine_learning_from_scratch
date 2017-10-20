@@ -4,7 +4,7 @@ import pandas as pd
 class sgd_regressor:
     
     def __init__(self, n_iter=100, alpha=0.01, verbose=False, return_steps=False, fit_intercept=True, 
-                 dynamic=False, loss='ols', epsilon=0.1):
+                 dynamic=False, loss='ols', epsilon=0.1, regularize='L2', lamb=1e-6, l1_perc = 0.5):
         """
         Stochastic Gradient Descent Algorithm, with OLS cost function.
         ---
@@ -23,6 +23,17 @@ class sgd_regressor:
                        base prediction if all X are 0.
                        
         dynamic: If true, an annealing scedule is used to scale the learning rate. 
+        
+        regularize: Choose what type, if any, of regularization to apply. Options are "L2" (Ridge),
+                    "L1" (Lasso), and "EN" (Elastic Net: L1 + L2). All other inputs will not apply
+                    regularization
+        
+        lamb: Stands for lambda. Sets the strength of the regularization. Large lambda causes large
+              regression. If regularization is off, this does not apply to anything.
+              
+        l1_perc: If using elastic net, this variable sets what portion of the penalty is L1 vs L2. 
+                 If regularize='EN' and l1_perc = 1, equivalent to regularize='L1'. If 
+                 regularize='EN' and l1_perc = 0, equivalent to regulzarize='L2'.
         """
         self.coef_ = None
         self.trained = False
@@ -33,6 +44,9 @@ class sgd_regressor:
         self._fit_intercept = fit_intercept
         self._next_alpha_shift = 0.1 # Only used if dynamic=True
         self._dynamic = dynamic
+        self._regularize = regularize
+        self._lamb = lamb
+        self._l1_perc = l1_perc
         
     def update(self, x, error):
         """
@@ -47,12 +61,22 @@ class sgd_regressor:
         error: The residual for the current data point, given the current coefficients. Prediction - True
         for the current datapoint and coefficients.
         """
-        step = self.alpha_*error*x
-        if self._fit_intercept:
-            self.coef_[1:] = self.coef_[1:] - step
-            self.coef_[0] = self.coef_[0] - self.alpha_ * error
+        if self._regularize == 'L2':
+            step = self.alpha_*error*x + 2*self._lamb*self.coef_[1:]
+        elif self._regularize == 'L1':
+            step = self.alpha_*error*x + self._lamb*np.sign(self.coef_[1:])
+        elif self._regularize == "EN":
+            step = self.alpha_*error*x + 2*self._lamb*self.coef_[1:] + self._lamb*np.sign(self.coef_[1:])
         else:
-            self.coef_ = self.coef_ - step
+            step = self.alpha_*error*x
+            
+        # We don't regularize the intercept term. This term is adjusting for the "shift" in our
+        # target data - and we don't want to shrink it, or we'll introduce bias.
+        if self._fit_intercept:  
+            self.coef_[1:] -= step
+            self.coef_[0] -= self.alpha_ * error
+        else:
+            self.coef_ -= step
         
     def shuffle_data(self, X, y):
         """
@@ -113,7 +137,6 @@ class sgd_regressor:
         """
         X = self.pandas_to_numpy(X)
         y = self.pandas_to_numpy(y)
-        
         self._stdy = np.std(y)
         self.coef_ = self.init_coef(X)
         if self._return_steps:
@@ -141,14 +164,9 @@ class sgd_regressor:
         ---
         Input: X, Feature matrix. Needed to decide how many coefficients to generate.
         """
-        try:
-            if self._fit_intercept:
-                return np.random.rand(X.shape[1]+1)
-            return np.random.rand(X.shape[1])
-        except:
-            if self._fit_intercept:
-                return np.random.rand(2)
-            return np.random.rand(1)
+        if self._fit_intercept:
+            return np.random.rand(X.shape[1]+1)
+        return np.random.rand(X.shape[1])
 
     def predict(self, X):  
         """
@@ -165,16 +183,3 @@ class sgd_regressor:
         if self._fit_intercept:
             return np.dot(X,self.coef_[1:]) + self.coef_[0]
         return np.dot(X,self.coef_)
-
-
-    def score(self, X, true):
-        """
-        Takes in X, y pairs and measures the performance of the model. 
-        Returns negative mean squared error score.
-        ---
-        Inputs: X, y (features, labels; np.arrays)
-        Outputs: negative Mean Squared Error (float)
-        """
-        pred = self.predict(X)
-        mse = -1.*np.mean(np.square(true-pred))
-        return mse
