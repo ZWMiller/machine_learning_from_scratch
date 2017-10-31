@@ -35,7 +35,8 @@ coefficients of linear regression.
 This module performs stochastic gradient descent to find the regression
 coefficients for linear regression. There are a few options to set, such as
 learning rate, number of iterations, etc. There's also an option for setting
-the learning rate to be dynamic. 
+the learning rate to be dynamic. **There are two versions of this notebook -
+one with and one without regularization included.**
 
 #### decision_tree_regreeor.ipynb (decision_tree_regressor.py)
 
@@ -115,6 +116,20 @@ and train-test split are built from scratch in this notebook.
 
 This is a suite of statistics calculation functions for regressions. Examples:
 mean_squared_error, r2, adjusted r2, etc.
+
+#### kde_approximator.ipynb 
+
+Kernel Density Approximation. Given a set of points, what surface best
+describes the probability of drawing a point from any region of space? This
+module approximates that by assuming some probability "kernel" like (what if
+every point is representing a gaussian probability distribution). 
+
+#### markov_chain_text.ipynb
+
+Given a document, can we learn about it and then generate new writings based
+on it? This uses the idea of Markov chains (randomly chaining together allowed
+possibilities together, via a probabalistic understanding of the document) to
+create new text from old documents.
 
 
 ## _Methodology note:_
