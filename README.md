@@ -1,10 +1,3 @@
-TO DO:
-
-  [ ] Markdown KMeans Notebook
-
-  [ ] Add KMeans README
-
----
 # Machine Learning from Scratch in Python
 
 
