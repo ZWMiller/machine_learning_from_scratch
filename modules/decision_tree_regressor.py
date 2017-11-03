@@ -49,6 +49,12 @@ class decision_tree_regressor:
             self.fb=fb # false decision nodes
             self.filt=filt # column filter to see which columns were available
     
+    def get_mean_target_value(self, data):
+        """
+        Returns: A dictionary of target variable counts in the data
+        """
+        return np.mean(data)
+    
     def split_data(self, X, y, colnum, value):
         """
         Returns: Two sets of data from the initial data. Set 1 contains those that passed
