@@ -1,13 +1,16 @@
 import numpy as np
 import pandas as pd
 
-def train_test_split(X, y, test_size=0.3):
+def train_test_split_verbose(X, y, test_size=0.3, seed=None):
     """
     Takes in features and labels and returns X_train, X_test, y_train, and y_test
     ----
-    In: X (features), y (labels), test_size (percentage of data to go into test)
+    In: X (features), y (labels), test_size (percentage of data to go into test), seed
     Out: X_train, X_test, y_train, and y_test
     """
+    if seed:
+        np.random.seed(seed)
+
     X = np.array(X)
     y = np.array(y)
     X_train = []
@@ -23,6 +26,32 @@ def train_test_split(X, y, test_size=0.3):
             X_test.append(x)
             y_test.append(y)
     return X_train, X_test, y_train, y_test
+
+def train_test_split(X, y, test_size=0.3, seed=None):
+    """
+    Takes in features and labels and returns X_train, X_test, y_train, and y_test.
+    If test_size is a float, it acts as a percentage of data to become test_size.
+    If test_size is an int, that many records are returned as a test.
+    ----
+    In: X (features), y (labels), test_size (percentage of data to go into test), seed
+    Out: X_train, X_test, y_train, and y_test
+    """
+    assert len(X) == len(y), "Length of records and labels must be equal!"
+
+    if isinstance(test_size, float):
+        if test_size < 0 or test_size > 1:
+            raise ValueError("test_size must be an int, or between 0 and 1")
+        test_size = int(len(y)*test_size)
+    elif not isinstance(test_size, int):
+        raise TypeError("test_size must be an int or a float")
+
+    if seed:
+        np.random.seed(seed)
+
+    permute = np.random.permutation(len(y))
+    X = X[permute]
+    y = y[permute]
+    return X[test_size:], X[:test_size], y[test_size:], y[:test_size]
 
 
 from stats_regress import *
@@ -42,9 +71,9 @@ class cross_val:
         self.feat_num = feat_num
         self.best_model = None
         self.best_model_score = None
-        
+
     def plot_single_feature_vs_label(self, X_train, X_test, y_train, y_test, feature_num=0, 
-                                     title="Checking Train-Test Split"):
+            title="Checking Train-Test Split"):
         """
         This helper method is to make plots of the data being split 
         with one feature vs the target label, showing each fold for 
@@ -89,8 +118,8 @@ class cross_val:
             plt.xlabel("Fold ID")
             plt.xticks([x for x in range(1,FOLDS+1)])
             plt.title("Variation of Coefficient Across Folds")
-        
-    def cross_validation_scores(self, model, X, y, k=5, random_seed=42):
+
+    def cross_validation_scores_verbose(self, model, X, y, k=5, random_seed=42):
         """
         Splits the dataset into k folds by randomly assigning each row a
         fold ID. Afterwards, k different models are built with each fold being
@@ -130,17 +159,65 @@ class cross_val:
                 best_score = current_score
                 self.best_model = model
                 self.best_model_score = current_score
-            try:
+            if model.coef_.any():
                 coefs.append(model.coef_)
-            except AttributeError:
-                pass
             if self.show_plot:
                 plot_title = "CV Fold " + str(fold)
                 plot_single_feature_vs_label(X_train, X_test, y_train, y_test, feature_num=self.feat_num, 
-                                             title=plot_title)
-        if coefs:
-            self.coefs = coefs     
-        
+                        title=plot_title)
+                if coefs:
+                    self.coefs = coefs     
+
+    def cross_validation_scores(self, model, X, y, k=5, random_seed=42):
+        """
+        Splits the dataset into k folds by randomly assigning each row a
+        fold ID. Afterwards, k different models are built with each fold being
+        left out once and used for testing the model performance.
+        ---
+        Inputs:
+        model: must be a class object with fit/predict methods. 
+        X: feature matrix (array)
+        y: labels (array)
+        k: number of folds to create and use
+        random_seed: sets the random number generator seed for reproducibility
+        """
+        X = np.array(X)
+        y = np.array(y)
+        self.score_folds = []
+        coefs = []
+        fold_nums = [x for x in range(k)]
+        np.random.seed(random_seed)
+        splitter = np.random.choice(fold_nums,size=y.shape)
+        best_score = None
+        permute = np.random.permutation(len(y))
+        X = X[permute]
+        y = y[permute]
+        test_size = len(y)//k
+        permute = np.random.permutation(len(y))
+        for fold in range(k):
+            start = fold*test_size
+            end = fold*test_size+test_size
+            X_test = X[permute[start:end]]
+            y_test = y[permute[start:end]]
+            X_train = X[~permute[start:end]]
+            y_train = y[~permute[start:end]]
+            
+            model.fit(X_train,y_train)
+            current_score = model.score(X_test, y_test)
+            self.score_folds.append(current_score)
+            if not best_score or current_score > best_score:
+                best_score = current_score
+                self.best_model = model
+                self.best_model_score = current_score
+            if model.coef_.any():
+                coefs.append(model.coef_)
+            if self.show_plot:
+                plot_title = "CV Fold " + str(fold)
+                plot_single_feature_vs_label(X_train, X_test, y_train, y_test, feature_num=self.feat_num, 
+                        title=plot_title)
+                if coefs:
+                    self.coefs = coefs     
+
     def print_report(self):
         """
         After the CV has been run, this method will print some summary statistics
