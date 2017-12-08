@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import sys
-from sgd_regressor import sgd_regressor
+from zwml.linear_models import sgd_regressor
 
 class ridge_regressor(sgd_regressor):
     

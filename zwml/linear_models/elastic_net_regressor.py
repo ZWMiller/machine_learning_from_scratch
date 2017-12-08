@@ -3,13 +3,13 @@ import pandas as pd
 import sys
 from zwml.linear_models import sgd_regressor
 
-class lasso_regressor(sgd_regressor):
+class elastic_net_regressor(sgd_regressor):
     
     def __init__(self, n_iter=100, alpha=0.01, verbose=False, return_steps=False, fit_intercept=True, 
                  dynamic=True, loss='ols', epsilon=0.1, lamb=1e-6, l1_perc = 0.5):
         """
-        Lasso Regressor - This is a wrapper on the SGD class where the regularization is set
-        to the L1 Norm. All other functionality is the same as the SGD class.
+        Ridge Regressor - This is a wrapper on the SGD class where the regularization is set
+        to the L2 Norm. All other functionality is the same as the SGD class.
         ---
         KWargs:
         
@@ -43,6 +43,6 @@ class lasso_regressor(sgd_regressor):
         self._fit_intercept = fit_intercept
         self._next_alpha_shift = 0.1 # Only used if dynamic=True
         self._dynamic = dynamic
-        self._regularize = 'L1'
+        self._regularize = 'EN'
         self._lamb = lamb
         self._l1_perc = l1_perc
