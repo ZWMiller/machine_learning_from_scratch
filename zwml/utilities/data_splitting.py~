@@ -1,21 +1,6 @@
 import numpy as np
 import pandas as pd
 
-def pandas_to_numpy(self, x):
-        """
-        Checks if the input is a Dataframe or series, converts to numpy matrix for
-        calculation purposes.
-        ---
-        Input: X (array, dataframe, or series)
-        
-        Output: X (array)
-        """
-        if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
-            return x.as_matrix()
-        if type(x) == type(np.array([1,2])):
-            return x
-        return np.array(x)
-
 def train_test_split_verbose(X, y, test_size=0.3, seed=None):
     """
     Takes in features and labels and returns X_train, X_test, y_train, and y_test
@@ -26,8 +11,8 @@ def train_test_split_verbose(X, y, test_size=0.3, seed=None):
     if seed:
         np.random.seed(seed)
 
-    X = pandas_to_numpy(X)
-    y = pandas_to_numpy(y)
+    X = np.array(X)
+    y = np.array(y)
     X_train = []
     X_test = []
     y_train = []
@@ -52,8 +37,6 @@ def train_test_split(X, y, test_size=0.3, seed=None):
     Out: X_train, X_test, y_train, and y_test
     """
     assert len(X) == len(y), "Length of records and labels must be equal!"
-    X = pandas_to_numpy(X)
-    y = pandas_to_numpy(y)
 
     if isinstance(test_size, float):
         if test_size < 0 or test_size > 1:
@@ -150,8 +133,8 @@ class cross_val:
         k: number of folds to create and use
         random_seed: sets the random number generator seed for reproducibility
         """
-        X = pandas_to_numpy(X)
-        y = pandas_to_numpy(y)
+        X = np.array(X)
+        y = np.array(y)
         self.score_folds = []
         coefs = []
         fold_nums = [x for x in range(k)]
@@ -199,8 +182,8 @@ class cross_val:
         k: number of folds to create and use
         random_seed: sets the random number generator seed for reproducibility
         """
-        X = pandas_to_numpy(X)
-        y = pandas_to_numpy(y)
+        X = np.array(X)
+        y = np.array(y)
         self.score_folds = []
         coefs = []
         fold_nums = [x for x in range(k)]

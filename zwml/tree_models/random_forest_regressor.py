@@ -1,6 +1,4 @@
-import sys 
-sys.path.append('../modules')
-from decision_tree_regressor import decision_tree_regressor
+from zwml.tree_models import decision_tree_regressor
 import collections
 import pandas as pd
 import numpy as np

@@ -1,4 +1,4 @@
-from decision_tree_classifier import decision_tree_classifier
+from zwml.tree_models import decision_tree_classifier
 import collections
 import pandas as pd
 import numpy as np
