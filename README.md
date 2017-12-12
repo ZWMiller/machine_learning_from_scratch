@@ -14,6 +14,8 @@ not be as optimized as SkLearn, etc.
 
 **__Organization__**
 
+zwml: This contains a fully functioning machine learning library with the ability to import a la sklearn. Want to use a decision tree? Just do `from zwml.tree_models import decision_tree_regressor`. This is still in alpha at the moment as many inconsistencies need to be cleaned up before it can be fully launched.
+
 Notebooks: Each notebook will have the class fully written out, with a test case shown.
 All version information for the used python and modules (numpy, pandas, etc)
 are shown as well for later comparison. 
