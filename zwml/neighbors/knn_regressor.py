@@ -87,10 +87,13 @@ class knn_regressor:
     
     def score(self, X, y):
         """
-        Uses the predict method to measure the accuracy of the model.
+        Uses the predict method to measure the (negative)
+        mean squared error of the model.
         ---
         In: X (list or array), feature matrix; y (list or array) labels
-        Out: accuracy (float)
+        Out: negative mean squared error (float)
         """
+        X = self.pandas_to_numpy(X)
+        y = self.pandas_to_numpy(y)
         pred = self.predict(X)
-        return np.mean((pred-y)**2)
+        return -1.*np.mean((pred-y)**2)

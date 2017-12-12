@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 class linear_regression:
     
@@ -24,8 +25,8 @@ class linear_regression:
         Read in X (all features) and y (target) and use the Linear Algebra solution
         to extract the coefficients for Linear Regression.
         """
-        X = np.array(X)
-        y = np.array(y)
+        X = self.pandas_to_numpy(X)
+        y = self.pandas_to_numpy(y)
         if X.ndim == 1:
             X = X.reshape(-1,1)
         if y.ndim == 1:
@@ -44,24 +45,37 @@ class linear_regression:
         """
         if not self.is_fit:
             raise ValueError("You have to run the 'fit' method before using predict!")
-        if type(X) == type([5]):
-            X = np.array(X)
-        if type(X) == type(5) or type(X) == type(5.):
-            X = np.array([X])
+        X = self.pandas_to_numpy(X)
         if X.ndim == 1:
             X = X.reshape(-1,1)
         if self.intercept:
             X = self.add_intercept(X)
-        return np.dot(X,self.coef_)[0][0]
+        return np.dot(X,self.coef_)
     
-    def score(self, X, true):
+    def pandas_to_numpy(self, x):
         """
-        Takes in X, y pairs and measures the performance of the model. 
-        Returns negative mean squared error score.
+        Checks if the input is a Dataframe or series, converts to numpy matrix for
+        calculation purposes.
         ---
-        Inputs: X, y (features, labels; np.arrays)
-        Outputs: negative Mean Squared Error (float)
+        Input: X (array, dataframe, or series)
+        
+        Output: X (array)
         """
+        if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
+            return x.as_matrix()
+        if type(x) == type(np.array([1])):
+            return x
+        return np.array(x)  
+    
+    def score(self, X, y):
+        """
+        Uses the predict method to measure the (negative)
+        mean squared error of the model.
+        ---
+        In: X (list or array), feature matrix; y (list or array) labels
+        Out: negative mean squared error (float)
+        """
+        X = self.pandas_to_numpy(X)
+        y = self.pandas_to_numpy(y)
         pred = self.predict(X)
-        mse = -1.*np.mean(np.square(true-pred))
-        return mse
+        return -1.*np.mean((pred-y)**2)

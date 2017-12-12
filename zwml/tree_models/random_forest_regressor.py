@@ -160,5 +160,7 @@ class random_forest_regressor:
         In: X (list or array), feature matrix; y (list or array) labels
         Out: negative mean squared error (float)
         """
+        X = self.pandas_to_numpy(X)
+        y = self.pandas_to_numpy(y)
         pred = self.predict(X)
-        return -1.* np.mean((np.array(pred)-np.array(y))**2)
+        return -1.*np.mean((pred-y)**2)

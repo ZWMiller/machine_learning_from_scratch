@@ -183,3 +183,16 @@ class sgd_regressor:
         if self._fit_intercept:
             return np.dot(X,self.coef_[1:]) + self.coef_[0]
         return np.dot(X,self.coef_)
+    
+    def score(self, X, y):
+        """
+        Uses the predict method to measure the (negative)
+        mean squared error of the model.
+        ---
+        In: X (list or array), feature matrix; y (list or array) labels
+        Out: negative mean squared error (float)
+        """
+        X = self.pandas_to_numpy(X)
+        y = self.pandas_to_numpy(y)
+        pred = self.predict(X)
+        return -1.*np.mean((pred-y)**2)
