@@ -1,4 +1,6 @@
 *.ipynb_checkpoints*
+**~
+lunch_and_learn_notes.md
 *.DS_Store*
 *.npz
 **/__pycache__/*

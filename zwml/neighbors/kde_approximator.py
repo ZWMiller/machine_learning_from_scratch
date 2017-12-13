@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from copy import copy
 
 class kde_approximator:
     
@@ -47,6 +48,21 @@ class kde_approximator:
         In: X (features), np.array or pandas dataframe/series
         """
         X = self.pandas_to_numpy(X)
+        if not self.data_cols:
+            try: 
+                self.data_cols = X.shape[1]
+            except IndexError:
+                self.data_cols = 1
+                
+        X = self.check_feature_shape(X)
+        self.X = copy(X)
+    
+    def make_surface(self):
+        """
+        ---
+        In: X (features), np.array or pandas dataframe/series
+        """
+        X = self.X
         
         if not self.data_cols:
             try: 
@@ -70,6 +86,19 @@ class kde_approximator:
                 probs.append(prob)
         self.region = points 
         self.probs = probs
+        
+    def sample(self, num_samples=1, random_state=None):
+        if random_state:
+            np.random.seed(random_state)
+        
+        samples = []
+        for i in range(num_samples):
+            pt = self.X[np.random.randint(self.X.shape[0])]
+            sample_pt = []
+            for dim in pt:
+                sample_pt.append(np.random.normal(dim, self.bandwidth))
+            samples.append(sample_pt)
+        return np.array(samples)
     
     def check_feature_shape(self, x):
         """
