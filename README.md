@@ -21,6 +21,27 @@ All version information for the used python and modules (numpy, pandas, etc)
 are shown as well for later comparison. 
 
 
+## _Methodology note:_
+
+A lot of these modules are *begging* for inheritance. As an example, the
+bagging classifier and the random forest classifier are largely the same code,
+with a few modified methods. Since these are designed as pedagogical tools and
+not "production code," I've chosen to make the modules as self-contained as
+possible. So instead of having an abstracted parent class, which a new
+programmer may have to track down, I've chosen to keep the code all together.
+I know it's sub-optimal for production, but I think it's better for someone to
+learn from. The only exceptions are ensemble methods that call entire other
+algorithms. For instance, the random forest module is building a bunch of
+decision trees, but with modfied data inputs. To illustrate this point, the
+decision tree class is imported as a stand-alone module and plugged in to the
+random forest module where it belongs - instead of recreating the decision
+tree in that class. The idea is that a new student will see how random forest
+(or other ensemble methodology) is just a super-class that wraps around
+another algorithm.
+
+
+## _Outdated descriptions of what's available - to be updated soon_
+
 # Notebooks/modules
 
 ## Regression: 
@@ -130,23 +151,4 @@ Given a document, can we learn about it and then generate new writings based
 on it? This uses the idea of Markov chains (randomly chaining together allowed
 possibilities together, via a probabalistic understanding of the document) to
 create new text from old documents.
-
-
-## _Methodology note:_
-
-A lot of these modules are *begging* for inheritance. As an example, the
-bagging classifier and the random forest classifier are largely the same code,
-with a few modified methods. Since these are designed as pedagogical tools and
-not "production code," I've chosen to make the modules as self-contained as
-possible. So instead of having an abstracted parent class, which a new
-programmer may have to track down, I've chosen to keep the code all together.
-I know it's sub-optimal for production, but I think it's better for someone to
-learn from. The only exceptions are ensemble methods that call entire other
-algorithms. For instance, the random forest module is building a bunch of
-decision trees, but with modfied data inputs. To illustrate this point, the
-decision tree class is imported as a stand-alone module and plugged in to the
-random forest module where it belongs - instead of recreating the decision
-tree in that class. The idea is that a new student will see how random forest
-(or other ensemble methodology) is just a super-class that wraps around
-another algorithm.
 
