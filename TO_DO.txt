@@ -1,0 +1,7 @@
+Mean Shift - cluster labels
+
+SGD Classifier OVR fix
+
+Spectral - RBF
+
+Comment/update to convert_to_array DBSCAN, Agglomerative, NN's, Regressor folder
