@@ -227,7 +227,7 @@ class cross_val:
                 best_score = current_score
                 self.best_model = model
                 self.best_model_score = current_score
-            if model.coef_.any():
+            if hasattr(model, 'coef_'):
                 coefs.append(model.coef_)
             if self.show_plot:
                 plot_title = "CV Fold " + str(fold)
