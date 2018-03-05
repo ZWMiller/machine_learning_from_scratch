@@ -1,5 +1,3 @@
-Mean Shift - cluster labels
-
 SGD Classifier OVR fix
 
 Spectral - RBF
