@@ -1,6 +1,5 @@
 import math
 import numpy as np
-import pandas as pd
 import copy
 import collections
 
@@ -29,23 +28,8 @@ class knn_classifier:
         ---
         In: X (features), y (labels); both np.array or pandas dataframe/series
         """
-        self.X = copy.copy(self.pandas_to_numpy(X))
+        self.X = copy.copy(self.convert_to_array(X))
         self.y = copy.copy(self.pandas_to_numpy(y))
-        
-    def pandas_to_numpy(self, x):
-        """
-        Checks if the input is a Dataframe or series, converts to numpy matrix for
-        calculation purposes.
-        ---
-        Input: X (array, dataframe, or series)
-        
-        Output: X (array)
-        """
-        if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
-            return x.as_matrix()
-        if type(x) == type(np.array([1,2])):
-            return x
-        return np.array(x)
     
     def predict(self, X):
         """
@@ -100,3 +84,36 @@ class knn_classifier:
             if i == j:
                 correct+=1
         return float(correct)/float(len(y))
+    
+    def pandas_to_numpy(self, x):
+        """
+        Checks if the input is a Dataframe or series, converts to numpy matrix for
+        calculation purposes.
+        ---
+        Input: X (array, dataframe, or series)
+        Output: X (array)
+        """
+        if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
+            return x.as_matrix()
+        if type(x) == type(np.array([1,2])):
+            return x
+        return np.array(x) 
+    
+    def handle_1d_data(self,x):
+        """
+        Converts 1 dimensional data into a series of rows with 1 columns
+        instead of 1 row with many columns.
+        """
+        if x.ndim == 1:
+            x = x.reshape(-1,1)
+        return x
+    
+    def convert_to_array(self, x):
+        """
+        Takes in an input and converts it to a numpy array
+        and then checks if it needs to be reshaped for us
+        to use it properly
+        """
+        x = self.pandas_to_numpy(x)
+        x = self.handle_1d_data(x)
+        return x

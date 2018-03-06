@@ -12,25 +12,17 @@ class sgd_regressor:
         
         n_iter: number of epochs to run in while fitting to the data. Total number of steps
         will be n_iter*X.shape[0]. 
-        
         alpha: The learning rate. Moderates the step size during the gradient descent algorithm.
-        
-        verbose: Whether to print out coefficient information during the epochs
-        
-        return_steps: If True, fit returns a list of the coefficients at each update step for diagnostics
-        
+        verbose: Whether to print out coefficient information during the epochs  
+        return_steps: If True, fit returns a list of the coefficients at each update step for diagnostics   
         fit_intercept: If True, an extra coefficient is added with no associated feature to act as the
-                       base prediction if all X are 0.
-                       
-        dynamic: If true, an annealing scedule is used to scale the learning rate. 
-        
+                       base prediction if all X are 0.                   
+        dynamic: If true, an annealing scedule is used to scale the learning rate.    
         regularize: Choose what type, if any, of regularization to apply. Options are "L2" (Ridge),
                     "L1" (Lasso), and "EN" (Elastic Net: L1 + L2). All other inputs will not apply
-                    regularization
-        
+                    regularization    
         lamb: Stands for lambda. Sets the strength of the regularization. Large lambda causes large
-              regression. If regularization is off, this does not apply to anything.
-              
+              regression. If regularization is off, this does not apply to anything.        
         l1_perc: If using elastic net, this variable sets what portion of the penalty is L1 vs L2. 
                  If regularize='EN' and l1_perc = 1, equivalent to regularize='L1'. If 
                  regularize='EN' and l1_perc = 0, equivalent to regulzarize='L2'.
@@ -47,6 +39,8 @@ class sgd_regressor:
         self._regularize = regularize
         self._lamb = lamb
         self._l1_perc = l1_perc
+        if self._l1_perc > 1. or self._l1_perc < 0.:
+            raise ValueError("l1_perc must be between 0 and 1")
         
     def update(self, x, error):
         """
@@ -66,7 +60,7 @@ class sgd_regressor:
         elif self._regularize == 'L1':
             step = self.alpha_*error*x + self._lamb*np.sign(self.coef_[1:])
         elif self._regularize == "EN":
-            step = self.alpha_*error*x + 2*self._lamb*self.coef_[1:] + self._lamb*np.sign(self.coef_[1:])
+            step = self.alpha_*error*x + 2*(1 - self._l1_perc)*self._lamb*self.coef_[1:] + self._l1_perc*self._lamb*np.sign(self.coef_[1:])
         else:
             step = self.alpha_*error*x
             
@@ -103,12 +97,32 @@ class sgd_regressor:
         calculation purposes.
         ---
         Input: X (array, dataframe, or series)
-        
         Output: X (array)
         """
         if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
-            x = x.as_matrix()
-        return x  
+            return x.as_matrix()
+        if type(x) == type(np.array([1,2])):
+            return x
+        return np.array(x) 
+        
+    def handle_1d_data(self,x):
+        """
+        Converts 1 dimensional data into a series of rows with 1 columns
+        instead of 1 row with many columns.
+        """
+        if x.ndim == 1:
+            x = x.reshape(-1,1)
+        return x
+    
+    def convert_to_array(self, x):
+        """
+        Takes in an input and converts it to a numpy array
+        and then checks if it needs to be reshaped for us
+        to use it properly
+        """
+        x = self.pandas_to_numpy(x)
+        x = self.handle_1d_data(x)
+        return x
     
     def dynamic_learning_rate_check(self, epoch):
         """
@@ -135,8 +149,8 @@ class sgd_regressor:
         Outputs:
             steps (optional): If return_steps=True, a list of the evolution of the coefficients is returned
         """
-        X = self.pandas_to_numpy(X)
-        y = self.pandas_to_numpy(y)
+        X = self.convert_to_array(X)
+        y = self.convert_to_array(y)
         self._stdy = np.std(y)
         self.coef_ = self.init_coef(X)
         if self._return_steps:
@@ -147,7 +161,7 @@ class sgd_regressor:
             if self.verbosity:
                 print("Epoch ", epoch, ", Coeff: ", self.coef_)
             for data, true in zip(shuf_X,shuf_y):
-                pred = self.predict(data)
+                pred = self.predict(data, is_array=True)
                 error = pred - true
                 self.update(data, error)
                 if self._return_steps:
@@ -168,7 +182,7 @@ class sgd_regressor:
             return np.random.rand(X.shape[1]+1)
         return np.random.rand(X.shape[1])
 
-    def predict(self, X):  
+    def predict(self, X, is_array=False):  
         """
         Returns a prediction for a new data set, using the model coefficients.
         ---
@@ -178,6 +192,8 @@ class sgd_regressor:
         Output:
             prediction (array): The dot product of the input data and the coeficients.
         """
+        if not is_array:
+            X = self.convert_to_array(X)
         if not self.coef_.all():
             raise ValueError("Coefficients not defined, must fit() before predict().")
         if self._fit_intercept:
@@ -192,7 +208,5 @@ class sgd_regressor:
         In: X (list or array), feature matrix; y (list or array) labels
         Out: negative mean squared error (float)
         """
-        X = self.pandas_to_numpy(X)
-        y = self.pandas_to_numpy(y)
         pred = self.predict(X)
-        return -1.*np.mean((pred-y)**2)
+        return -1.* np.mean((np.array(pred)-np.array(y))**2)

@@ -102,7 +102,26 @@ class random_forest_regressor:
             return x.as_matrix()
         if type(x) == type(np.array([1,2])):
             return x
-        return np.array(x)
+        return np.array(x) 
+        
+    def handle_1d_data(self,x):
+        """
+        Converts 1 dimensional data into a series of rows with 1 columns
+        instead of 1 row with many columns.
+        """
+        if x.ndim == 1:
+            x = x.reshape(-1,1)
+        return x
+    
+    def convert_to_array(self, x):
+        """
+        Takes in an input and converts it to a numpy array
+        and then checks if it needs to be reshaped for us
+        to use it properly
+        """
+        x = self.pandas_to_numpy(x)
+        x = self.handle_1d_data(x)
+        return x
     
     def fit(self, X, y):
         """
@@ -114,8 +133,8 @@ class random_forest_regressor:
         ---
         Input: X, y (arrays, dataframe, or series)
         """
-        X = self.pandas_to_numpy(X)
-        y = self.pandas_to_numpy(y)
+        X = self.convert_to_array(X)
+        y = self.convert_to_array(y)
         try:
             self.base_filt = [x for x in range(X.shape[1])]
         except IndexError:
@@ -140,7 +159,7 @@ class random_forest_regressor:
         Input: X (array, dataframe, or series)
         Output: Class ID (int)
         """
-        X = self.pandas_to_numpy(X)
+        X = self.convert_to_array(X)
         self.predicts = []
         for tree, filt in self.tree_filter_pairs:
             filtered_X = self.apply_filter(X, filt)
@@ -160,7 +179,5 @@ class random_forest_regressor:
         In: X (list or array), feature matrix; y (list or array) labels
         Out: negative mean squared error (float)
         """
-        X = self.pandas_to_numpy(X)
-        y = self.pandas_to_numpy(y)
         pred = self.predict(X)
-        return -1.*np.mean((pred-y)**2)
+        return -1.* np.mean((np.array(pred)-np.array(y))**2)

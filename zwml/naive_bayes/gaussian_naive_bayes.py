@@ -43,14 +43,9 @@ class gaussian_naive_bayes:
         Input: X, data (array/DataFrame)
         y, targets (array/Series)
         """
-        X = self.pandas_to_numpy(X)
+        X = self.convert_to_array(X)
         y = self.pandas_to_numpy(y)
-        if not self._data_cols:
-            try: 
-                self._data_cols = X.shape[1]
-            except IndexError:
-                self._data_cols = 1
-        X = self.check_feature_shape(X)
+        self._data_cols = X.shape[1]
         
         self._classes = np.unique(y)
         
@@ -102,8 +97,7 @@ class gaussian_naive_bayes:
         Inputs: X, data (array/DataFrame)
         mode: type of prediction to return, defaults to single prediction mode
         """
-        X = self.pandas_to_numpy(X)
-        X = self.check_feature_shape(X)
+        X = self.convert_to_array(X)
         results = []
         for row in X:
             beliefs = []
@@ -146,26 +140,35 @@ class gaussian_naive_bayes:
                 correct+=1
         return float(correct)/float(len(y))
       
-    def check_feature_shape(self, X):
-        """
-        Helper function to make sure any new data conforms to the fit data shape
-        ---
-        In: numpy array, (unknown shape)
-        Out: numpy array, shape: (rows, self.data_cols)"""
-        return X.reshape(-1,self._data_cols)
-            
-    
     def pandas_to_numpy(self, x):
         """
         Checks if the input is a Dataframe or series, converts to numpy matrix for
         calculation purposes.
         ---
         Input: X (array, dataframe, or series)
-        
         Output: X (array)
         """
         if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
-            return np.array(x)
+            return x.as_matrix()
         if type(x) == type(np.array([1,2])):
             return x
-        return np.array(x)
+        return np.array(x) 
+    
+    def handle_1d_data(self,x):
+        """
+        Converts 1 dimensional data into a series of rows with 1 columns
+        instead of 1 row with many columns.
+        """
+        if x.ndim == 1:
+            x = x.reshape(-1,1)
+        return x
+    
+    def convert_to_array(self, x):
+        """
+        Takes in an input and converts it to a numpy array
+        and then checks if it needs to be reshaped for us
+        to use it properly
+        """
+        x = self.pandas_to_numpy(x)
+        x = self.handle_1d_data(x)
+        return x

@@ -6,22 +6,21 @@ class sgd_classifier:
     def __init__(self, n_iter=10, alpha=0.01, verbose=False, return_steps=False, fit_intercept=True, 
                  dynamic=False, loss='ols', epsilon=0.1, random_state=None):
         """
-        Stochastic Gradient Descent Algorithm, with Logistic Regression cost function.
+        Stochastic Gradient Descent Algorithm, with Logistic Regression 
+        cost function.
         ---
         KWargs:
         
-        n_iter: number of epochs to run in while fitting to the data. Total number of steps
-        will be n_iter*X.shape[0]. 
-        
-        alpha: The learning rate. Moderates the step size during the gradient descent algorithm.
-        
-        verbose: Whether to print out coefficient information during the epochs
-        
-        return_steps: If True, fit returns a list of the coefficients at each update step for diagnostics
-        
-        fit_intercept: If True, an extra coefficient is added with no associated feature to act as the
-                       base prediction if all X are 0.
-                       
+        n_iter: number of epochs to run in while fitting to the data. 
+        Total number of steps will be n_iter*X.shape[0]. 
+        alpha: The learning rate. Moderates the step size during the 
+        gradient descent algorithm.
+        verbose: Whether to print out coefficient information during 
+        the epochs
+        return_steps: If True, fit returns a list of the coefficients 
+        at each update step for diagnostics
+        fit_intercept: If True, an extra coefficient is added with no 
+        associated feature to act as the base prediction if all X are 0.
         dynamic: If true, an annealing scedule is used to scale the learning rate. 
         """
         self.coef_ = None
@@ -75,21 +74,6 @@ class sgd_classifier:
         assert len(X) == len(y)
         permute = np.random.permutation(len(y))
         return X[permute], y[permute]
-        
-    def pandas_to_numpy(self, x):
-        """
-        Checks if the input is a Dataframe or series, converts to numpy matrix for
-        calculation purposes.
-        ---
-        Input: X (array, dataframe, or series)
-        
-        Output: X (array)
-        """
-        if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
-            return x.as_matrix()
-        if type(x) == type(np.array([1,2])):
-            return x
-        return np.array(x) 
     
     def dynamic_learning_rate_check(self, epoch):
         """
@@ -116,14 +100,8 @@ class sgd_classifier:
         Outputs:
             steps (optional): If return_steps=True, a list of the evolution of the coefficients is returned
         """
-        X = self.pandas_to_numpy(X)
-        y = self.pandas_to_numpy(y)
-        if not self._data_cols:
-            try: 
-                self._data_cols = X.shape[1]
-            except IndexError:
-                self._data_cols = 1
-        X = self.check_feature_shape(X)
+        X = self.convert_to_array(X)
+        y = self.convert_to_array(y)
         self._stdy = np.std(y)
         self.coef_ = self.init_coef(X)
         if self._return_steps:
@@ -134,7 +112,7 @@ class sgd_classifier:
             if self.verbosity:
                 print("Epoch ", epoch, ", Coeff: ", self.coef_)
             for data, true in zip(shuf_X,shuf_y):
-                pred = self.predict_proba(data)
+                pred = self.predict_proba(data, is_array=True)
                 error = pred - true
                 self.update(data, error)
                 if self._return_steps:
@@ -155,7 +133,7 @@ class sgd_classifier:
             return np.random.rand(X.shape[1]+1)
         return np.random.rand(X.shape[1])
 
-    def predict_proba(self, X):  
+    def predict_proba(self, X, is_array=False):  
         """
         Returns a prediction for a new data set, using the model coefficients.
         ---
@@ -165,8 +143,8 @@ class sgd_classifier:
         Output:
             prediction (array): The dot product of the input data and the coeficients.
         """
-        X = self.pandas_to_numpy(X)
-        X = self.check_feature_shape(X)
+        if not is_array:
+            X = self.convert_to_array(X)
         if not self.coef_.all():
             raise ValueError("Coefficients not defined, must fit() before predict().")
         if self._fit_intercept:
@@ -175,32 +153,31 @@ class sgd_classifier:
         return self.logit(np.dot(X,self.coef_))
     
     def predict(self, X, threshold=0.5):
-        preds = self.predict_proba(X)
-        preds = list(map(lambda x: 1 if x >= threshold else 0, preds))
-        return np.array(preds)
-    
-    def check_feature_shape(self, X):
         """
-        Helper function to make sure any new data conforms to the fit data shape
-        ---
-        In: numpy array, (unknown shape)
-        Out: numpy array, shape: (rows, self.data_cols)"""
-        return X.reshape(-1,self._data_cols)
+        Takes the output of predict_proba and applies a threshold
+        to the probability value. If the value is greater than the
+        threshold, labels the row as class 1. Else class 0.
+        """
+        preds = self.predict_proba(X)
+        preds[preds >= threshold] = 1
+        preds[preds < threshold] = 0
+        return preds.reshape(-1,1)
     
     def logit(self, beta_x):
+        """
+        Applies the sigmoid or logit function to current
+        linear prediction from beta * X.
+        """
         denom = 1. - np.exp(-beta_x)
         val = 1./denom
         
-        def handle_rounding(x):
-            # handles rounding errors which cause slightly negative or slightly >1 values
-            if x > 1:
-                return 1
-            elif x < 0:
-                return 0
-            else:
-                return x
-        vals = list(map(handle_rounding, val))
-        return np.array(vals)
+        if type(val) != 'numpy.ndarray':
+            val = np.array([val])
+            
+        # Handle rounding errors!
+        val[val>1] = 1
+        val[val<0] = 0
+        return val
       
     def score(self, X, y):
         """
@@ -215,3 +192,36 @@ class sgd_classifier:
             if i == j:
                 correct+=1
         return float(correct)/float(len(y))
+    
+    def pandas_to_numpy(self, x):
+        """
+        Checks if the input is a Dataframe or series, converts to numpy matrix for
+        calculation purposes.
+        ---
+        Input: X (array, dataframe, or series)
+        Output: X (array)
+        """
+        if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
+            return x.as_matrix()
+        if type(x) == type(np.array([1,2])):
+            return x
+        return np.array(x) 
+    
+    def handle_1d_data(self,x):
+        """
+        Converts 1 dimensional data into a series of rows with 1 columns
+        instead of 1 row with many columns.
+        """
+        if x.ndim == 1:
+            x = x.reshape(-1,1)
+        return x
+    
+    def convert_to_array(self, x):
+        """
+        Takes in an input and converts it to a numpy array
+        and then checks if it needs to be reshaped for us
+        to use it properly
+        """
+        x = self.pandas_to_numpy(x)
+        x = self.handle_1d_data(x)
+        return x

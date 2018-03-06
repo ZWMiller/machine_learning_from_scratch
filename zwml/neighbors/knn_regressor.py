@@ -1,12 +1,13 @@
 import math
 import numpy as np
 import copy
+import collections
 
 class knn_regressor:
     
     def __init__(self, n_neighbors=5):
         """
-        KNearestNeighbors is a distance based classifier that returns
+        KNearestNeighbors is a distance based regressors that returns
         predictions based on the nearest points in the feature space.
         ---
         In: n_neighbors (int) - how many closest neighbors do we consider
@@ -27,8 +28,8 @@ class knn_regressor:
         ---
         In: X (features), y (labels); both np.array or pandas dataframe/series
         """
-        self.X = copy.copy(self.pandas_to_numpy(X))
-        self.y = copy.copy(self.pandas_to_numpy(y))
+        self.X = copy.copy(self.convert_to_array(X))
+        self.y = copy.copy(self.convert_to_array(y))
         
     def pandas_to_numpy(self, x):
         """
@@ -36,14 +37,32 @@ class knn_regressor:
         calculation purposes.
         ---
         Input: X (array, dataframe, or series)
-        
         Output: X (array)
         """
         if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
             return x.as_matrix()
         if type(x) == type(np.array([1,2])):
             return x
-        return np.array(x)
+        return np.array(x) 
+        
+    def handle_1d_data(self,x):
+        """
+        Converts 1 dimensional data into a series of rows with 1 columns
+        instead of 1 row with many columns.
+        """
+        if x.ndim == 1:
+            x = x.reshape(-1,1)
+        return x
+    
+    def convert_to_array(self, x):
+        """
+        Takes in an input and converts it to a numpy array
+        and then checks if it needs to be reshaped for us
+        to use it properly
+        """
+        x = self.pandas_to_numpy(x)
+        x = self.handle_1d_data(x)
+        return x
     
     def predict(self, X):
         """
@@ -55,7 +74,7 @@ class knn_regressor:
         In: new data to predict (np.array, pandas series/dataframe)
         Out: predictions (np.array)
         """
-        X = self.pandas_to_numpy(X)
+        X = self.convert_to_array(X)
         results = []
         for x in X:
             local_results = []
@@ -67,7 +86,7 @@ class knn_regressor:
     def get_final_predict(self,results):
         """
         Takes a list of [distance, label] pairs and sorts by distance,
-        returning the mode vote for the n_neighbors (k) closest votes. 
+        returning themean of the n_neighbors (k) closest points. 
         ---
         In: [[distance, label]] list of lists
         Output: class label (int)
@@ -93,7 +112,5 @@ class knn_regressor:
         In: X (list or array), feature matrix; y (list or array) labels
         Out: negative mean squared error (float)
         """
-        X = self.pandas_to_numpy(X)
-        y = self.pandas_to_numpy(y)
         pred = self.predict(X)
-        return -1.*np.mean((pred-y)**2)
+        return -1.* np.mean((np.array(pred)-np.array(y))**2)

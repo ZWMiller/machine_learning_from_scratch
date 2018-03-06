@@ -147,22 +147,32 @@ class decision_tree_classifier:
         calculation purposes.
         ---
         Input: X (array, dataframe, or series)
-        
         Output: X (array)
         """
         if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
             return x.as_matrix()
         if type(x) == type(np.array([1,2])):
             return x
-        return np.array(x)
+        return np.array(x) 
     
-    def check_feature_shape(self, x):
+    def handle_1d_data(self,x):
         """
-        Helper function to make sure any new data conforms to the fit data shape
-        ---
-        In: numpy array, (unknown shape)
-        Out: numpy array, shape: (rows, self.data_cols)"""
-        return x.reshape(-1,self.data_cols)
+        Converts 1 dimensional data into a series of rows with 1 columns
+        instead of 1 row with many columns.
+        """
+        if x.ndim == 1:
+            x = x.reshape(-1,1)
+        return x
+    
+    def convert_to_array(self, x):
+        """
+        Takes in an input and converts it to a numpy array
+        and then checks if it needs to be reshaped for us
+        to use it properly
+        """
+        x = self.pandas_to_numpy(x)
+        x = self.handle_1d_data(x)
+        return x
     
     def fit(self, X, y):
         """
@@ -181,16 +191,17 @@ class decision_tree_classifier:
         ---
         Input: X (feature matrix), y (labels)
         Output: A nested tree built upon the node class."""
-        X = self.pandas_to_numpy(X)
-        y = self.pandas_to_numpy(y)
-        if not self.data_cols:
-            try: 
-                self.data_cols = X.shape[1]
-            except IndexError:
-                self.data_cols = 1
-        X = self.check_feature_shape(X)
+        X = self.convert_to_array(X)
+        y = self.convert_to_array(y)
+
         if len(X) == 0: return tree_split()
         current_score = self.entropy(y)
+
+        best_gain = 0.0
+        best_criteria = None
+        best_sets = None
+        
+        self.data_cols = X.shape[1]
 
         best_gain = 0.0
         best_criteria = None
@@ -279,7 +290,7 @@ class decision_tree_classifier:
         a new data point. If the node is an endpoint, the available classes
         are sorted by "most common" and then the top choice is returned.
         """
-        newdata = self.pandas_to_numpy(newdata)
+        newdata = self.pandas_to_numpy(newdata) # need it to be a 1d array for this
         if tree.results: # if this is a end node
             return sorted(list(tree.results.items()), key=lambda x: x[1],reverse=True)[0][0]
 

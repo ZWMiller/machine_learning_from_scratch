@@ -1,13 +1,15 @@
-from zwml.tree_models import decision_tree_classifier
+import sys 
+sys.path.append('../..')
+from zwml.tree_models import decision_tree_regressor
 import collections
 import pandas as pd
 import numpy as np
 
-class bagging_classifier:
+class bagging_regressor:
     
     def __init__(self, n_trees = 10, max_depth=None):
         """
-        Bagging Classifier uses bootstrapping to generate n_trees different
+        Bagging regressor uses bootstrapping to generate n_trees different
         datasets and then applies a decision tree to each dataset. The final 
         prediction is an ensemble of all created trees.
         ---
@@ -56,7 +58,7 @@ class bagging_classifier:
         y = self.pandas_to_numpy(y)
         for _ in range(self.n_trees):
             bagX, bagy = self.get_bagged_data(X,y)
-            new_tree = decision_tree_classifier(max_depth = self.max_depth)
+            new_tree = decision_tree_regressor(max_depth=self.max_depth)
             new_tree.fit(bagX, bagy)
             self.trees.append(new_tree)
             
@@ -76,19 +78,16 @@ class bagging_classifier:
         
         ensemble_predict = []
         for row in self.pred_by_row:
-            ensemble_predict.append(collections.Counter(row).most_common(1)[0][0])
+            ensemble_predict.append(np.mean(row))
         return ensemble_predict
     
     def score(self, X, y):
         """
-        Uses the predict method to measure the accuracy of the model.
+        Uses the predict method to measure the (negative)
+        mean squared error of the model.
         ---
         In: X (list or array), feature matrix; y (list or array) labels
-        Out: accuracy (float)
+        Out: negative mean squared error (float)
         """
         pred = self.predict(X)
-        correct = 0
-        for i,j in zip(y,pred):
-            if i == j:
-                correct+=1
-        return float(correct)/float(len(y))
+        return -1.* np.mean((np.array(pred)-np.array(y))**2)

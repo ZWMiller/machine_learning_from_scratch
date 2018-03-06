@@ -85,20 +85,6 @@ class random_forest_classifier:
         filtered_X = X.T[filt]
         return filtered_X.T
     
-    def pandas_to_numpy(self, x):
-        """
-        Checks if the input is a Dataframe or series, converts to numpy matrix for
-        calculation purposes.
-        ---
-        Input: X (array, dataframe, or series)
-        Output: X (array)
-        """
-        if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
-            return x.as_matrix()
-        if type(x) == type(np.array([1,2])):
-            return x
-        return np.array(x)
-    
     def fit(self, X, y):
         """
         Generates the bootstrapped data, decides which column to keep,
@@ -109,7 +95,7 @@ class random_forest_classifier:
         ---
         Input: X, y (arrays, dataframe, or series)
         """
-        X = self.pandas_to_numpy(X)
+        X = self.convert_to_array(X)
         y = self.pandas_to_numpy(y)
         try:
             self.base_filt = [x for x in range(X.shape[1])]
@@ -134,7 +120,7 @@ class random_forest_classifier:
         Input: X (array, dataframe, or series)
         Output: Class ID (int)
         """
-        X = self.pandas_to_numpy(X)
+        X = self.convert_to_array(X)
         self.predicts = []
         for tree, filt in self.tree_filter_pairs:
             filtered_X = self.apply_filter(X, filt)
@@ -159,3 +145,36 @@ class random_forest_classifier:
             if i == j:
                 correct+=1
         return float(correct)/float(len(y))
+    
+    def pandas_to_numpy(self, x):
+        """
+        Checks if the input is a Dataframe or series, converts to numpy matrix for
+        calculation purposes.
+        ---
+        Input: X (array, dataframe, or series)
+        Output: X (array)
+        """
+        if type(x) == type(pd.DataFrame()) or type(x) == type(pd.Series()):
+            return x.as_matrix()
+        if type(x) == type(np.array([1,2])):
+            return x
+        return np.array(x) 
+    
+    def handle_1d_data(self,x):
+        """
+        Converts 1 dimensional data into a series of rows with 1 columns
+        instead of 1 row with many columns.
+        """
+        if x.ndim == 1:
+            x = x.reshape(-1,1)
+        return x
+    
+    def convert_to_array(self, x):
+        """
+        Takes in an input and converts it to a numpy array
+        and then checks if it needs to be reshaped for us
+        to use it properly
+        """
+        x = self.pandas_to_numpy(x)
+        x = self.handle_1d_data(x)
+        return x
