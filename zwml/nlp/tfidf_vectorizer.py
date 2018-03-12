@@ -2,16 +2,20 @@ import numpy as np
 from collections import Counter
 from string import punctuation
 
-class count_vectorizer:
+class tfidf_vectorizer:
     
     def __init__(self, max_features=None, ngrams = (1,1), tokenizer=None, remove_stopwords=False):
         """
-        Count vectorizer reads the text provided, tokenizes it
-        with the provided tokenizer (or the default), then generates
-        ngrams keeping track of all ngrams as the vocabulary.
-        Then it takes provided texts and converts them into vectors
-        by counting the appearance of each ngram and tracking that
-        for every document. 
+        Term frequency, inverse document frequency vectorizer 
+        reads the text provided, tokenizes it with the provided 
+        tokenizer (or the default), then generates ngrams keeping 
+        track of all ngrams as the vocabulary. Then it takes provided 
+        texts and converts them into vectors by counting the 
+        appearance of each ngram and tracking that for every document. 
+        The counts are then scaled by the max term frequency and the
+        inverse document frequency (see converter method). This new
+        result is better than counts at picking out how important
+        words are based on both usage and uniqueness. 
         ---
         KWargs:
         max_features: how many ngrams to allow in the vector, using the
@@ -124,8 +128,9 @@ class count_vectorizer:
         Go through all provided documents and use the known
         vocabulary to track how often each ngram appears in
         the document. At the end, stack all of the generated
-        document vectors together. Skip the initial vector that
-        all 0's, which is just there to act as a template.
+        document vectors together. Convert them to tf-idf
+        and skip the initial vector that's all 0's, which 
+        is just there to act as a template.
         """
         vectorized_docs = np.zeros(len(self.vocabulary.keys()))
         for document in X:
@@ -136,7 +141,31 @@ class count_vectorizer:
                     word_id = self.token_to_id[token]
                     vectorized_doc[word_id] += 1
             vectorized_docs = np.vstack((vectorized_docs,vectorized_doc))
-        return vectorized_docs[1:]
+        return self.convert_counts_to_tf_idf(vectorized_docs)[1:]
+    
+    def convert_counts_to_tf_idf(self, docs):
+        """
+        To convert from counts to TF-IDF, we first scale
+        each value by the maximum in it's own column. This 
+        lowers dependence on document length. Then we calculate
+        log(number of documents/(1+documents containing this ngram)).
+        This is the inverse document frequency (the one is to make
+        combat division by 0). Each value is scaled as:
+        term_frequency*inverse_document_frequency.
+        """
+        number_of_columns = docs.shape[1]
+        number_of_docs = docs.shape[0]
+        frequency_scalers = np.ones(number_of_columns)
+        idf_terms = np.ones(number_of_columns)
+        for col in range(number_of_columns):
+            column_vals = docs.T[col]
+            frequency_scalers[col] = np.max(column_vals)
+            number_of_docs_containing = np.sum((column_vals > 0).astype(int))
+            idf_terms[col] = np.log(number_of_docs/(1+number_of_docs_containing))
+        docs = docs/frequency_scalers
+        docs = docs*idf_terms
+        
+        return docs           
     
     def fit_transform(self, X):
         """
