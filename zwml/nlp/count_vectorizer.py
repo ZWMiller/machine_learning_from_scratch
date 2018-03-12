@@ -27,6 +27,8 @@ class count_vectorizer:
         self.ngrams = ngrams
         if tokenizer == None:
             self.tokenizer = self.tokenize
+        else:
+            self.tokenizer = tokenizer
         self.remove_stopwords = remove_stopwords
         self.stopwords = {'ourselves', 'hers', 'between', 'yourself', 'but', 'again', 
                           'there', 'about', 'once', 'during', 'out', 'very', 'having', 
