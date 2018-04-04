@@ -129,9 +129,8 @@ class isolation_tree:
         self.data_cols = X.shape[1]
         
         
-        # Here we go through column by column and try every possible split, measuring the
-        # information gain. We keep track of the best split then use that to send the split
-        # data sets into the next phase of splitting.
+        # Here we go choose a random feature, then a random value between the 
+        # min and max values of that feature from the training data.
         
         col = np.random.randint(self.data_cols)
         value = np.random.uniform(min(X.T[col]), max(X.T[col]))
